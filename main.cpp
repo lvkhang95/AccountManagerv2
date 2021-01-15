@@ -8,7 +8,6 @@
 #include "Account.h"
 #include "Admin.h"
 #include "User.h"
-#include "Display.h"
 #include <iostream>
 
 using namespace std;
@@ -20,17 +19,42 @@ int main(){
 
 	switch(userChoice){
 	case Choice::Login:
-		//todo
+	{
+		Account loginUser;
+		if(loginUser.login()){
+			vector<string> loggedinAccountInfo = loginUser.getInfo();
+			if(loggedinAccountInfo[2] == "Admin"){
+				//do admin stuff
+			}
+			else{
+				//do user stuff
+				User loggedinUser;
+				loggedinUser.set(loggedinAccountInfo);
+				UsermenuDisplay(userChoice);
+				switch(userChoice){
+				case Choice::Change:{
+					//change password
+					if(loggedinUser.change())
+						EditInDatabase(loggedinUser);
+					break;
+				}
+				case Choice::Delete:{
+					//delete user account
+					break;
+				}
+				default:
+					break;
+				}
+			}
+		}
+
 		break;
+	}
 	case Choice::Register:
 	{
-		User newAccount;
-		string newUsername;
-
-		cout << "username :";
-		cin >> newUsername;
-
-		vector<string> accountInfo = GetFromDatabase(newUsername);
+		Account newUser;
+		if(newUser.create())
+			PushToDatabase(newUser);
 		break;
 	}
 	default:

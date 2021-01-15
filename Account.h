@@ -22,9 +22,13 @@ protected:
 	Status status;
 public:
 	Account();
-	~Account();
-	void create();
+
 	vector<string> getInfo();
+	void set(vector<string>);
+	bool create();
+	bool login();
+	bool change();
+
 };
 
 #endif /* ACCOUNT_H_ */
