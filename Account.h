@@ -25,10 +25,6 @@ public:
 
 	vector<string> getInfo();
 	void set(vector<string>);
-	bool create();
-	bool login();
-	bool change();
-
 };
 
 #endif /* ACCOUNT_H_ */

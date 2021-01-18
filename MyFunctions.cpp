@@ -37,7 +37,7 @@ void UsermenuDisplay(Choice& choice){
 	int userChoice = 0;
 	cout << "Hello user!" << endl <<
 			"1. Change your password." << endl <<
-			"2. Deleted your account." << endl <<
+			"2. Delete your account." << endl <<
 			"->your choice: ";
 	cin >> userChoice;
 	switch(userChoice){
@@ -46,6 +46,59 @@ void UsermenuDisplay(Choice& choice){
 			break;
 		case 2:
 			choice = Choice::Delete;
+			break;
+		default:
+			choice = Choice::Nothing;
+			break;
+		}
+}
+
+void AdminmenuDisplay(Choice& choice){
+	int adminChoice = 0;
+	cout << "Hello admin!" << endl <<
+			"1. Change your password." << endl <<
+			"2. Review pending accounts [" << NumberOfAccounts(Status::Pending) << "]." << endl <<
+			"3. List accounts." << endl <<
+			"-> your choice: ";
+	cin >> adminChoice;
+	switch(adminChoice){
+	case 1:
+		choice = Choice::Change;
+		break;
+	case 2:
+		choice = Choice::Review;
+		break;
+	case 3:
+		choice = Choice::Listing;
+		break;
+	default:
+		choice = Choice::Nothing;
+		break;
+	}
+
+}
+
+void ReviewmenuDisplay(Choice& choice){
+	int adminChoice = 0;
+	cout << "\nMenu:" << endl <<
+			"1. Select account(s) for delete approval." << endl <<
+			"2. Select account(s) for re-activation." << endl <<
+			"3. Delete all." << endl <<
+			"4. Re-activate all." << endl <<
+			"-> your choice: ";
+	cin >> adminChoice;
+	switch(adminChoice){
+		case 1:
+			choice = Choice::Delete_Aprroval;
+			break;
+		case 2:
+			choice = Choice::Reactivate;
+			break;
+		case 3:
+			choice = Choice::Delete_All;
+			break;
+		case 4:
+			choice = Choice::Reactivate_All;
 			break;
 		default:
 			choice = Choice::Nothing;
@@ -65,8 +118,7 @@ vector<string> GetFromDatabase(string id) {
 		string storedStatus = "";
 
 		stringstream toBeCompared(line);
-		toBeCompared >> storedUsername >> storedPassword >> storedRole
-				>> storedStatus;
+		toBeCompared >> storedUsername >> storedPassword >> storedRole >> storedStatus;
 
 		if (storedUsername == id) {
 			accountInfo.push_back(storedUsername);
@@ -77,6 +129,83 @@ vector<string> GetFromDatabase(string id) {
 		}
 	}
 	return accountInfo;
+}
+
+vector<Account> GetFromDatabase(Status accountStatus){
+
+	vector<Account> accountList;
+	ifstream readFile(FILE_NAME);
+	string line = "";
+
+	while (getline(readFile, line)) {
+		string storedUsername = "";
+		string storedPassword = "";
+		string storedRole = "";
+		string storedStatus = "";
+		vector<string> accountInfo;
+
+		stringstream toBeCompared(line);
+		toBeCompared >> storedUsername >> storedPassword >> storedRole >> storedStatus;
+
+		accountInfo.push_back(storedUsername);
+		accountInfo.push_back(storedPassword);
+		accountInfo.push_back(storedRole);
+		accountInfo.push_back(storedStatus);
+
+		switch(accountStatus){
+		case Status::Active:{
+			if(storedStatus == "Active"){
+				Account activeAccount;
+				activeAccount.set(accountInfo);
+				accountList.push_back(activeAccount);
+			}
+			break;
+		}
+		case Status::Deleted:{
+			if (storedStatus == "Deleted") {
+				Account deletedAccount;
+				deletedAccount.set(accountInfo);
+				accountList.push_back(deletedAccount);
+			}
+			break;
+		}
+		default:
+			if(storedStatus == "Pending"){
+				Account pendingAccount;
+				pendingAccount.set(accountInfo);
+				accountList.push_back(pendingAccount);
+			}
+			break;
+		}
+	}
+	return accountList;
+}
+
+vector<Account> GetFromDatabase(){
+	vector<Account> accountList;
+	ifstream readFile(FILE_NAME);
+	string line = "";
+
+	while (getline(readFile, line)) {
+		string storedUsername = "";
+		string storedPassword = "";
+		string storedRole = "";
+		string storedStatus = "";
+		vector<string> accountInfo;
+
+		stringstream toBeCompared(line);
+		toBeCompared >> storedUsername >> storedPassword >> storedRole >> storedStatus;
+
+		accountInfo.push_back(storedUsername);
+		accountInfo.push_back(storedPassword);
+		accountInfo.push_back(storedRole);
+		accountInfo.push_back(storedStatus);
+
+		Account account;
+		account.set(accountInfo);
+		accountList.push_back(account);
+	}
+	return accountList;
 }
 
 void PushToDatabase(Account& account){
@@ -98,12 +227,71 @@ void EditInDatabase(Account& account){
 	text << readFile.rdbuf();
 	string content = text.str();
 	content.replace(content.find(accountInfo[0]),
-					string(accountInfo[0] + accountInfo[1] + accountInfo[2] + accountInfo[3]).length() + (accountInfo.size()-1),
-					accountInfo[0] + " " + accountInfo[1] + " " + accountInfo[2] + " " + accountInfo[3]);
+					string(accountInfo[0] + accountInfo[1] + accountInfo[2] +
+						   accountInfo[3]).length() + (accountInfo.size()-1),
+					accountInfo[0] + " " + accountInfo[1] + " " +
+					accountInfo[2] + " " + accountInfo[3] +"\n");
 	readFile.close();
 
 	ofstream outFile(FILE_NAME);
 	outFile << content;
+}
+
+void RemoveFromDatabase(vector<Account>& accountList){
+	ifstream readFile(FILE_NAME);
+	ostringstream text;
+	string content = text.str();
+	text << readFile.rdbuf();
+
+	vector<Account>::iterator accountListIterator = accountList.begin();
+	while (accountListIterator < accountList.end()) {
+		vector<string> accountInfo = accountListIterator->getInfo();
+		content.replace(content.find(accountInfo[0]),
+						string(accountInfo[0] + accountInfo[1] + accountInfo[2] +
+							   accountInfo[3]).length() + (accountInfo.size()-1),
+						"\n");
+	}
+	readFile.close();
+
+	ofstream outFile(FILE_NAME);
+	outFile << content;
+}
+
+unsigned int NumberOfAccounts(Status status) {
+	unsigned int accountCount = 0;
+	ifstream readFile(FILE_NAME);
+	string line = "";
+
+	while (getline(readFile, line)) {
+		string storedUsername = "";
+		string storedPassword = "";
+		string storedRole = "";
+		string storedStatus = "";
+
+		stringstream toBeCompared(line);
+		toBeCompared >> storedUsername >> storedPassword >> storedRole >> storedStatus;
+
+		switch (status) {
+		case Status::Active: {
+			if (storedStatus == "Active")
+				accountCount++;
+			break;
+		}
+		case Status::Deleted: {
+			if (storedStatus == "Deleted")
+				accountCount++;
+			break;
+		}
+		case Status::Pending: {
+			if (storedStatus == "Pending")
+				accountCount++;
+			break;
+		}
+		default:
+			break;
+		}
+	}
+	return accountCount;
 }
 
 bool LowerCheck(string toBeChecked){
