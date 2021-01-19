@@ -17,10 +17,11 @@ public:
 	bool changePassword(Account&);
 	void printInfo(Account&);
 	bool deactivate(Account&);
+	void reactivate(vector<Account>&);
 	bool remove(vector<Account>&);
 	vector<Account> listing(Status);
 	void listing(vector<Account>);
-	vector<Account> select(string,vector<Account>);
+	vector<Account> select(string, vector<Account>&);
 };
 
 #endif /* ACCOUNTMANAGER_H_ */

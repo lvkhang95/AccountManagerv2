@@ -58,7 +58,7 @@ void AdminmenuDisplay(Choice& choice){
 	cout << "Hello admin!" << endl <<
 			"1. Change your password." << endl <<
 			"2. Review pending accounts [" << NumberOfAccounts(Status::Pending) << "]." << endl <<
-			"3. List accounts." << endl <<
+			"3. List all accounts." << endl <<
 			"-> your choice: ";
 	cin >> adminChoice;
 	switch(adminChoice){
@@ -80,7 +80,7 @@ void AdminmenuDisplay(Choice& choice){
 
 void ReviewmenuDisplay(Choice& choice){
 	int adminChoice = 0;
-	cout << "\nMenu:" << endl <<
+	cout << "\nReview Menu:" << endl <<
 			"1. Select account(s) for delete approval." << endl <<
 			"2. Select account(s) for re-activation." << endl <<
 			"3. Delete all." << endl <<
@@ -224,13 +224,15 @@ void EditInDatabase(Account& account){
 	ifstream readFile(FILE_NAME);
 	ostringstream text;
 
+	vector<string> databaseInfo = GetFromDatabase(accountInfo[0]);
+
 	text << readFile.rdbuf();
 	string content = text.str();
 	content.replace(content.find(accountInfo[0]),
-					string(accountInfo[0] + accountInfo[1] + accountInfo[2] +
-						   accountInfo[3]).length() + (accountInfo.size()-1),
+					string(databaseInfo[0] + databaseInfo[1] + databaseInfo[2] +
+							databaseInfo[3]).length() + (databaseInfo.size()-1),
 					accountInfo[0] + " " + accountInfo[1] + " " +
-					accountInfo[2] + " " + accountInfo[3] +"\n");
+					accountInfo[2] + " " + accountInfo[3]);
 	readFile.close();
 
 	ofstream outFile(FILE_NAME);
@@ -240,16 +242,18 @@ void EditInDatabase(Account& account){
 void RemoveFromDatabase(vector<Account>& accountList){
 	ifstream readFile(FILE_NAME);
 	ostringstream text;
-	string content = text.str();
+
 	text << readFile.rdbuf();
+	string content = text.str();
 
 	vector<Account>::iterator accountListIterator = accountList.begin();
 	while (accountListIterator < accountList.end()) {
 		vector<string> accountInfo = accountListIterator->getInfo();
-		content.replace(content.find(accountInfo[0]),
+		accountListIterator++;
+		content.replace(content.find(accountInfo[0])-1,
 						string(accountInfo[0] + accountInfo[1] + accountInfo[2] +
-							   accountInfo[3]).length() + (accountInfo.size()-1),
-						"\n");
+							   accountInfo[3]).length() + (accountInfo.size()),
+						"");
 	}
 	readFile.close();
 

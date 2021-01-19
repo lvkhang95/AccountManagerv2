@@ -35,33 +35,41 @@ int main(){
 				switch(adminChoice){
 				case Choice::Change:{
 					if (admin.changePassword(loggedinAdmin))
-						EditInDatabase (loggedinAdmin);
+						EditInDatabase(loggedinAdmin);
 					break;
 				}
 				case Choice::Review:{
-					admin.listing(Status::Pending);
+					vector<Account> pendingAccounts = admin.listing(Status::Pending);
 					ReviewmenuDisplay(adminChoice);
 					switch(adminChoice){
 					case Choice::Delete_Aprroval:{
-						vector<Account> accountList = admin.listing(Status::Pending);
-						string selectedAccount = "";
+						admin.listing(pendingAccounts);
+						string selection = "";
 						cout << "Selected account(s), separated by a semicolon(;): ";
-						cin >> selectedAccount;
-						vector<Account> selectedAccounts;// = admin.select(selectedAccount,accountList);
+						cin >> selection;
+						vector<Account> selectedAccounts = admin.select(selection, pendingAccounts);
 						RemoveFromDatabase(selectedAccounts);
+						cout << "Successfully deleted!" << endl;
 						break;
 					}
 					case Choice::Reactivate:{
 						admin.listing(Status::Pending);
-						string selectedAccount = "";
+						string selection = "";
 						cout << "Selected account(s), separated by a semicolon(;): ";
-						cin >> selectedAccount;
+						cin >> selection;
+						vector<Account> selectedAccounts = admin.select(selection, pendingAccounts);
+						admin.reactivate(selectedAccounts);
+						for(Account toBeReactivated : selectedAccounts)
+							EditInDatabase(toBeReactivated);
 						break;
 					}
 					case Choice::Delete_All:{
+						RemoveFromDatabase(pendingAccounts);
 						break;
 					}
 					case Choice::Reactivate_All:{
+						for(Account toBeReactivated : pendingAccounts)
+							EditInDatabase(toBeReactivated);
 						break;
 					}
 					default:
@@ -69,7 +77,10 @@ int main(){
 					}
 				}
 				case Choice::Listing:{
-
+					cout << "Active accounts:" << endl;
+					admin.listing(Status::Active);
+					cout << "Pending accounts:" << endl;
+					admin.listing(Status::Pending);
 				}
 				default:
 					break;

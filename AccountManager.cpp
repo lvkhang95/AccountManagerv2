@@ -119,7 +119,7 @@ void AccountManager::printInfo(Account& account){
 }
 
 bool AccountManager::deactivate(Account& account){
-	bool isDeactivate = false;
+	bool isDeactivated = false;
 	string password ="";
 	cout << "Re-enter your password: ";
 	cin >> password;
@@ -127,12 +127,22 @@ bool AccountManager::deactivate(Account& account){
 	if(password == accountInfo[1]){
 		accountInfo[3] = "Pending";
 		account.set(accountInfo);
-		isDeactivate = true;
+		isDeactivated = true;
 		cout << "Your request is sent.";
 	}
 	else
 		cout << "Incorrect password !!!";
-	return isDeactivate;
+	return isDeactivated;
+}
+
+void AccountManager::reactivate(vector<Account>& accountList){
+	vector<Account>::iterator accountListIt = accountList.begin();
+	while(accountListIt < accountList.end()){
+		vector<string> accountInfo = accountListIt->getInfo();
+		accountInfo[3] = "Active";
+		accountListIt->set(accountInfo);
+		accountListIt++;
+	}
 }
 
 bool AccountManager::remove(vector<Account>& deletedAccounts){
@@ -182,19 +192,22 @@ void AccountManager::listing(vector<Account> accountList){
 	}
 }
 
-vector<Account> select(string selection,vector<Account> sourceAccounts){
+vector<Account> AccountManager::select(string selection, vector<Account>& sourceList){
 	vector<Account> selectedAccounts;
-	string::iterator it = selection.begin();
-	string elementh = "";
-	while(it < selection.end()){
-		if(isdigit(*it))
-			elementh.push_back(*it);
+	string accessor;
+	selection.push_back('.');
+	for(char isBeingChecked : selection){
+		if(isdigit(isBeingChecked))
+			accessor.push_back(isBeingChecked);
 		else{
-			stringstream ss(elementh); //convert string to int
+			stringstream buffer(accessor);
 			int iterator = 0;
-			ss >> iterator;
-			selectedAccounts.push_back(sourceAccounts[iterator-1]);
-			elementh.erase();
+			buffer >> iterator;
+			if(iterator <= 0)
+				break;
+			else
+				selectedAccounts.push_back(sourceList[iterator-1]);
+			accessor.erase();
 		}
 	}
 	return selectedAccounts;

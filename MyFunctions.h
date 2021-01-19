@@ -37,4 +37,5 @@ bool SpecialCharCheck(string);
 
 
 
+
 #endif /* MYFUNCTIONS_H_ */
